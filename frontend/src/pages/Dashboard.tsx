@@ -15,10 +15,11 @@ import {
   CreditCard,
   Activity 
 } from 'lucide-react';
+import { useLoans } from '@/hooks/useLoans';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const [loans, setLoans] = useState<Loan[]>([]);
+  const { loans, loading } = useLoans(); // Use the hook instead of local state
   const [payments, setPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState({
     totalLoans: 0,
@@ -30,31 +31,30 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      // Load user's loans
-      const allLoans = JSON.parse(localStorage.getItem('loanManagement_loans') || '[]');
-      const userLoans = allLoans.filter((loan: Loan) => loan.userId === user.id);
-      setLoans(userLoans);
-
       // Load user's payments
       const allPayments = JSON.parse(localStorage.getItem('loanManagement_payments') || '[]');
       const userPayments = allPayments.filter((payment: Payment) => 
-        userLoans.some(loan => loan.id === payment.loanId)
+        loans.some(loan => loan.id === payment.loanId)
       );
       setPayments(userPayments);
+    }
+  }, [user, loans]);
 
-      // Calculate stats
-      const activeLoans = userLoans.filter(loan => loan.status === 'active');
-      const completedLoans = userLoans.filter(loan => loan.status === 'completed');
+  useEffect(() => {
+    if (loans) {
+      // Calculate stats from MongoDB data
+      const activeLoans = loans.filter(loan => loan.status === 'active');
+      const completedLoans = loans.filter(loan => loan.status === 'completed');
       
       setStats({
-        totalLoans: userLoans.length,
+        totalLoans: loans.length,
         activeLoans: activeLoans.length,
-        totalPrincipal: userLoans.reduce((sum, loan) => sum + loan.principalAmount, 0),
+        totalPrincipal: loans.reduce((sum, loan) => sum + loan.principalAmount, 0),
         totalEMI: activeLoans.reduce((sum, loan) => sum + loan.emiAmount, 0),
         completedLoans: completedLoans.length,
       });
     }
-  }, [user]);
+  }, [loans]);
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -158,7 +158,12 @@ const Dashboard: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {loans.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+                    <p className="text-muted-foreground mt-2">Loading your loans...</p>
+                  </div>
+                ) : loans.length === 0 ? (
                   <div className="text-center py-8">
                     <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">No loans found. Create your first loan using the EMI Calculator.</p>
@@ -166,7 +171,7 @@ const Dashboard: React.FC = () => {
                 ) : (
                   <div className="space-y-4">
                     {loans.map((loan) => (
-                      <div key={loan.id} className="p-4 bg-background rounded-lg border border-border">
+                      <div key={loan._id} className="p-4 bg-background rounded-lg border border-border">
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <p className="font-semibold text-foreground">

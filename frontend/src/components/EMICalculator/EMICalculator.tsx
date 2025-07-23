@@ -76,31 +76,48 @@ const EMICalculator: React.FC = () => {
     }
   };
 
-  const saveLoan = () => {
+  const saveLoan = async () => {
     if (!calculationResult || !user) return;
 
-    const newLoan: Loan = {
-      id: Date.now().toString(),
-      userId: user.id,
-      principalAmount: principal,
-      interestRate,
-      tenure,
-      emiAmount: calculationResult.emiAmount,
-      loanType,
-      createdAt: new Date().toISOString(),
-      status: 'active',
-      remainingPrincipal: principal,
-      paidInstallments: 0,
-    };
+    try {
+      const newLoan = {
+        userId: user.id,
+        principalAmount: principal,
+        interestRate,
+        tenure,
+        emiAmount: calculationResult.emiAmount,
+        loanType,
+        status: 'active',
+        remainingPrincipal: principal,
+        paidInstallments: 0,
+      };
 
-    const loans = JSON.parse(localStorage.getItem('loanManagement_loans') || '[]');
-    loans.push(newLoan);
-    localStorage.setItem('loanManagement_loans', JSON.stringify(loans));
+      const response = await fetch('http://localhost:5000/api/loans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newLoan),
+      });
 
-    toast({
-      title: "Loan Saved!",
-      description: "Your loan has been successfully saved to your portfolio.",
-    });
+      if (!response.ok) {
+        throw new Error('Failed to save loan');
+      }
+
+      const savedLoan = await response.json();
+      
+      toast({
+        title: "Loan Saved!",
+        description: "Your loan has been successfully saved to your portfolio.",
+      });
+    } catch (error) {
+      console.error('Save loan error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save loan. Please try again.",
+      });
+    }
   };
 
   return (
