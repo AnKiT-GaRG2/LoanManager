@@ -13,7 +13,10 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [otp, setOtp] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
   const { register } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -21,144 +24,210 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Password mismatch",
-        description: "Passwords do not match. Please try again.",
-      });
-      return;
-    }
+    if (!showOtpInput) {
+      // First step: Validate and send OTP
+      if (!email || !password || !confirmPassword || !name) {
+        toast({
+          variant: "destructive",
+          title: "Missing Information",
+          description: "Please fill in all fields.",
+        });
+        return;
+      }
 
-    if (password.length < 6) {
-      toast({
-        variant: "destructive",
-        title: "Weak password",
-        description: "Password must be at least 6 characters long.",
-      });
-      return;
-    }
+      if (password !== confirmPassword) {
+        toast({
+          variant: "destructive",
+          title: "Password mismatch",
+          description: "Passwords do not match. Please try again.",
+        });
+        return;
+      }
 
-    setIsLoading(true);
+      if (password.length < 6) {
+        toast({
+          variant: "destructive",
+          title: "Weak password",
+          description: "Password must be at least 6 characters long.",
+        });
+        return;
+      }
 
-    const success = await register(email, password, name);
-    
-    if (success) {
-      toast({
-        title: "Account created!",
-        description: "Welcome to LoanManager. Your account has been created successfully.",
-      });
-      navigate('/dashboard');
+      setIsLoading(true);
+      try {
+        // Send OTP
+        const response = await fetch('http://localhost:5000/api/auth/send-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, name }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setShowOtpInput(true);
+          toast({
+            title: "OTP Sent!",
+            description: "Please check your email for the OTP.",
+          });
+        } else {
+          throw new Error(data.message || 'Failed to send OTP');
+        }
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to send OTP. Please try again.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
     } else {
-      toast({
-        variant: "destructive",
-        title: "Registration failed",
-        description: "Email already exists. Please use a different email.",
-      });
+      // Second step: Verify OTP and complete registration
+      if (!otp) {
+        toast({
+          variant: "destructive",
+          title: "Missing OTP",
+          description: "Please enter the OTP sent to your email.",
+        });
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // Verify OTP
+        const verifyResponse = await fetch('http://localhost:5000/api/auth/verify-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, otp }),
+        });
+
+        if (!verifyResponse.ok) {
+          const errorData = await verifyResponse.json();
+          throw new Error(errorData.message || 'Invalid OTP');
+        }
+
+        // Complete registration
+        const success = await register(email, password, name);
+        if (success) {
+          toast({
+            title: "Success!",
+            description: "Account created successfully. Redirecting to dashboard...",
+          });
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1500);
+        } else {
+          throw new Error('Registration failed');
+        }
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error instanceof Error ? error.message : "Registration failed. Please try again.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
-    
-    setIsLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <TrendingUp className="h-12 w-12 text-primary mr-2" />
-            <h1 className="text-3xl font-bold text-foreground">LoanManager</h1>
-          </div>
-          <p className="text-muted-foreground">Professional loan management solution</p>
-        </div>
-
-        <Card className="bg-gradient-card border-border shadow-card">
-          <CardHeader>
-            <CardTitle>Create Account</CardTitle>
-            <CardDescription>
-              Join thousands of users managing their loans professionally
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-6 w-6" />
+            Create Account
+          </CardTitle>
+          <CardDescription>
+            Enter your details to create a new account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!showOtpInput ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </>
+            ) : (
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="otp">Enter OTP</Label>
                 <Input
-                  id="name"
+                  id="otp"
                   type="text"
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter the 6-digit OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  maxLength={6}
                   required
-                  className="bg-background border-border"
                 />
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-background border-border"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Create a password (min 6 characters)"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-background border-border"
-                />
-              </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {showOtpInput ? 'Verifying...' : 'Sending OTP...'}
+                </>
+              ) : (
+                showOtpInput ? 'Verify & Register' : 'Send OTP'
+              )}
+            </Button>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="bg-background border-border"
-                />
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
-                  'Create Account'
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Already have an account?{' '}
-                <Link to="/login" className="text-primary hover:underline">
-                  Sign in
-                </Link>
-              </p>
+            <div className="text-center text-sm">
+              Already have an account?{' '}
+              <Link to="/login" className="text-primary hover:underline">
+                Login here
+              </Link>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

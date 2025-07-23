@@ -59,37 +59,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (email: string, password: string, name: string): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Get existing users
-    const users = JSON.parse(localStorage.getItem('loanManagement_users') || '[]');
-    
-    // Check if user already exists
-    if (users.find((u: any) => u.email === email)) {
-      setIsLoading(false);
+    try {
+      setIsLoading(true);
+      // Get existing users or initialize empty array
+      const existingUsers = localStorage.getItem('loanManagement_users');
+      const users = existingUsers ? JSON.parse(existingUsers) : [];
+      
+      // Create new user object
+      const newUser = {
+        id: Date.now().toString(),
+        email,
+        password, // In production, this should be hashed
+        name,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Save to localStorage
+      users.push(newUser);
+      localStorage.setItem('loanManagement_users', JSON.stringify(users));
+      
+      // Set current user (without password)
+      const userSession = {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        createdAt: newUser.createdAt
+      };
+      
+      setUser(userSession);
+      localStorage.setItem('loanManagement_user', JSON.stringify(userSession));
+      
+      return true;
+    } catch (error) {
+      console.error('Registration error:', error);
       return false;
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
-      email,
-      password,
-      name,
-      createdAt: new Date().toISOString(),
-    };
-    
-    users.push(newUser);
-    localStorage.setItem('loanManagement_users', JSON.stringify(users));
-    
-    // Auto-login after registration
-    const userWithoutPassword = { ...newUser };
-    delete userWithoutPassword.password;
-    setUser(userWithoutPassword);
-    localStorage.setItem('loanManagement_user', JSON.stringify(userWithoutPassword));
-    
-    setIsLoading(false);
-    return true;
   };
 
   const logout = () => {
