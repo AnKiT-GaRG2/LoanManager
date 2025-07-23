@@ -2,7 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const Item = require('../models/Item');
+const User = require('../models/Item');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 // Store OTPs temporarily (in production, use Redis or similar)
 const otpStore = new Map();
@@ -75,21 +77,66 @@ router.post('/register', async (req, res) => {
   const { email, password, name } = req.body;
   
   try {
-    // Create user object
-    const user = {
-      id: Date.now().toString(),
-      email,
-      name,
-      createdAt: new Date().toISOString()
-    };
+    // Check if user already exists
+    const existingUser = await Item.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ 
+        message: 'User already exists with this email' 
+      });
+    }
 
+    // Create new user
+    const user = new Item({
+      fullName: name,
+      email,
+      password
+    });
+
+    // Save user to database
+    await user.save();
+
+    // Return success without password
     res.status(201).json({ 
       message: 'User registered successfully',
-      user 
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Registration failed' });
+  }
+});
+
+// Login route
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    res.status(200).json({
+      message: 'Login successful',
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email
+      }
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
 });
 

@@ -39,57 +39,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Get users from localStorage
-    const users = JSON.parse(localStorage.getItem('loanManagement_users') || '[]');
-    const foundUser = users.find((u: any) => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const userWithoutPassword = { ...foundUser };
-      delete userWithoutPassword.password;
-      setUser(userWithoutPassword);
-      localStorage.setItem('loanManagement_user', JSON.stringify(userWithoutPassword));
+    try {
+      setIsLoading(true);
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+        localStorage.setItem('loanManagement_user', JSON.stringify(data.user));
+        return true;
+      } else {
+        throw new Error(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    } finally {
       setIsLoading(false);
-      return true;
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
   const register = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      // Get existing users or initialize empty array
-      const existingUsers = localStorage.getItem('loanManagement_users');
-      const users = existingUsers ? JSON.parse(existingUsers) : [];
-      
-      // Create new user object
-      const newUser = {
-        id: Date.now().toString(),
-        email,
-        password, // In production, this should be hashed
-        name,
-        createdAt: new Date().toISOString()
-      };
-      
-      // Save to localStorage
-      users.push(newUser);
-      localStorage.setItem('loanManagement_users', JSON.stringify(users));
-      
-      // Set current user (without password)
-      const userSession = {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        createdAt: newUser.createdAt
-      };
-      
-      setUser(userSession);
-      localStorage.setItem('loanManagement_user', JSON.stringify(userSession));
-      
-      return true;
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+        localStorage.setItem('loanManagement_user', JSON.stringify(data.user));
+        return true;
+      } else {
+        throw new Error(data.message || 'Registration failed');
+      }
     } catch (error) {
       console.error('Registration error:', error);
       return false;
