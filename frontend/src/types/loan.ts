@@ -1,15 +1,17 @@
 export interface Loan {
-  id: string;
+  _id: string; // MongoDB id
+  loanId: string; // Add this line
   userId: string;
   principalAmount: number;
   interestRate: number;
-  tenure: number; // in months
+  tenure: number;
   emiAmount: number;
   loanType: 'emi' | 'interest-only';
-  createdAt: string;
   status: 'active' | 'completed' | 'defaulted';
   remainingPrincipal: number;
   paidInstallments: number;
+  nextDueDate?: Date;
+  createdAt: string;
 }
 
 export interface Payment {
@@ -17,11 +19,7 @@ export interface Payment {
   loanId: string;
   amount: number;
   paymentDate: string;
-  principalAmount: number;
-  interestAmount: number;
   remainingBalance: number;
-  isPrepayment: boolean;
-  notes?: string;
 }
 
 export interface LoanCalculation {

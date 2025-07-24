@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react';
 import { Loan } from '@/types/loan';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const useLoans = () => {
+interface UseLoansReturn {
+  loans: Loan[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export const useLoans = (): UseLoansReturn => {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +29,6 @@ export const useLoans = () => {
       const data = await response.json();
       setLoans(data);
     } catch (error) {
-      console.error('Fetch loans error:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch loans');
     } finally {
       setLoading(false);
