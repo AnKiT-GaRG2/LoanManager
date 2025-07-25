@@ -2,7 +2,6 @@
 
 ![GitHub stars](https://img.shields.io/github/stars/AnKiT-GaRG2/LoanManager?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/AnKiT-GaRG2/LoanManager?style=social)
-![License](https://img.shields.io/badge/license-MIT-blue)
 ![Tech](https://img.shields.io/badge/Tech-React%20%7C%20Node.js%20%7C%20MongoDB-green)
 
 A **Professional Loan Management Platform** that simplifies loan tracking, EMI calculations, and borrower management.  
