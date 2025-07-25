@@ -136,7 +136,7 @@ Contributions are welcome!
 ## 📧 Contact
 
 **Ankit Garg**  
-📩 [Your Email or LinkedIn here]  
+📩 anki88520@gmail.com
 ⭐ If you like this project, don’t forget to give it a star!
 
 ---
