@@ -139,8 +139,3 @@ Contributions are welcome!
 📩 anki88520@gmail.com
 ⭐ If you like this project, don’t forget to give it a star!
 
----
-
-## 📝 License
-
-This project is licensed under the [MIT License](LICENSE).
