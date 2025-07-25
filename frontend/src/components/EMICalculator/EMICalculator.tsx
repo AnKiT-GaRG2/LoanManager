@@ -33,7 +33,7 @@ const EMICalculator: React.FC = () => {
   
   const { user } = useAuth();
   const { toast } = useToast();
-
+  const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => {
     if (principal && interestRate && tenure) {
       const result = generateLoanSchedule(principal, interestRate, tenure, loanType);
@@ -77,6 +77,7 @@ const EMICalculator: React.FC = () => {
   };
 
   const saveLoan = async () => {
+     
     if (!calculationResult || !user) return;
 
     try {
@@ -323,7 +324,10 @@ const EMICalculator: React.FC = () => {
               </div>
             </div>
 
-            <Button onClick={saveLoan} className="w-full" variant="secondary">
+            <Button onClick={() => {
+    saveLoan();
+    setRefreshKey((prev) => prev + 1); // force re-render instead of full reload
+  }} className="w-full" variant="secondary">
               <Save className="mr-2 h-4 w-4" />
               Save Loan
             </Button>
