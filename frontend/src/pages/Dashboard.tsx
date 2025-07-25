@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 // Types
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 interface DashboardStats {
   totalLoans: number;
   activeLoans: number;
@@ -47,7 +48,7 @@ const Dashboard: React.FC = () => {
     const fetchPayments = async () => {
       if (!user || !loans) return;
       try {
-        const response = await fetch(`http://localhost:5000/api/payments/${user.id}`);
+        const response = await fetch(`${backendUrl}/api/payments/${user.id}`);
         const allPayments: Payment[] = await response.json();
         const userPayments = allPayments.filter((payment: Payment) =>
           loans.some((loan) => loan.loanId === payment.loanId)
@@ -65,7 +66,7 @@ const Dashboard: React.FC = () => {
     const fetchStats = async () => {
       if (!user) return;
       try {
-        const response = await fetch(`http://localhost:5000/api/stats/${user.id}`);
+        const response = await fetch(`${backendUrl}/api/stats/${user.id}`);
         if (!response.ok) throw new Error('Failed to fetch stats');
         const statsData = await response.json();
         setStats(statsData);
@@ -150,7 +151,7 @@ const Dashboard: React.FC = () => {
       }));
 
       // API call
-      const response = await fetch(`http://localhost:5000/api/loans/${loanId}/pay`, {
+      const response = await fetch(`${backendUrl}/api/loans/${loanId}/pay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -17,7 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loan } from '@/types/loan';
 import { Calculator, Save, TrendingUp } from 'lucide-react';
-
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const TENURE_OPTIONS = [6, 12, 24, 36, 60];
 const INTEREST_RATE_OPTIONS = [8, 10, 12, 15, 18];
 const EMI_AMOUNT_OPTIONS = [5000, 10000, 15000, 25000, 50000];
@@ -92,7 +92,7 @@ const EMICalculator: React.FC = () => {
         paidInstallments: 0,
       };
 
-      const response = await fetch('http://localhost:5000/api/loans', {
+      const response = await fetch(`${backendUrl}/api/loans`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -20,7 +20,7 @@ const Register: React.FC = () => {
   const { register } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -56,7 +56,7 @@ const Register: React.FC = () => {
       setIsLoading(true);
       try {
         // Send OTP
-        const response = await fetch('http://localhost:5000/api/auth/send-otp', {
+        const response = await fetch(`${backendUrl}/api/auth/send-otp`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ const Register: React.FC = () => {
       setIsLoading(true);
       try {
         // Verify OTP
-        const verifyResponse = await fetch('http://localhost:5000/api/auth/verify-otp', {
+        const verifyResponse = await fetch(`${backendUrl}/api/auth/verify-otp`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
