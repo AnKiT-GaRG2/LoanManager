@@ -326,7 +326,7 @@ const EMICalculator: React.FC = () => {
 
             <Button onClick={() => {
     saveLoan();
-    setRefreshKey((prev) => prev + 1); // force re-render instead of full reload
+    window.location.reload(); // force re-render instead of full reload
   }} className="w-full" variant="secondary">
               <Save className="mr-2 h-4 w-4" />
               Save Loan
