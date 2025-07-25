@@ -60,7 +60,7 @@ loanSchema.pre('save', async function(next) {
     let isUnique = false;
     let attempts = 0;
     
-    while (!isUnique && attempts < 10) {
+    while (!isUnique && attempts < 50) {
       const existingLoan = await mongoose.model('Loan').findOne({ loanId: this.loanId });
       if (!existingLoan) {
         isUnique = true;
