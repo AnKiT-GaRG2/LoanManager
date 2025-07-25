@@ -49,11 +49,7 @@ const borrowerSchema = new mongoose.Schema({
 });
 
 const Borrower = mongoose.model('Borrower', borrowerSchema);
-app.use(cors({
-  origin: "*", // or specify "https://loan-manager-six.vercel.app"
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/api', emailRouter); // ✅ this mounts correctly
