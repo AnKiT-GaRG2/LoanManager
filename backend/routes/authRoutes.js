@@ -13,7 +13,7 @@ const otpStore = new Map();
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'anki88520@gmail.com', // Replace with your email
+    user: process.env.EMAIL_USER, // Replace with your email
     pass: process.env.EMAIL_PASS
   }
 });

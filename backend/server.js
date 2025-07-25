@@ -5,8 +5,9 @@ import authRoutes from './routes/authRoutes.js';
 import loanRoutes from './routes/loanRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import dotenv from 'dotenv';
-
+import emailRouter from './email.js'; 
 // Load environment variables
+import bodyParser from 'body-parser';
 dotenv.config();
 
 const app = express();
@@ -21,7 +22,7 @@ app.use('/api/loans', loanRoutes);
 app.use('/api/chat', chatRoutes); // Changed from "/api" to "/api/chat"
 
 // MongoDB connection with better error handling
-mongoose.connect('mongodb://localhost:27017/loanmanager', {
+mongoose.connect(process.env.Mongo_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -32,7 +33,22 @@ mongoose.connect('mongodb://localhost:27017/loanmanager', {
   console.error('MongoDB connection error:', err);
   process.exit(1); // Exit if database connection fails
 });
+//to send mail of interest
+const borrowerSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  principalAmount: Number,
+  interestRate: Number,
+  tenure: Number,
+  emi: Number,
+  createdAt: { type: Date, default: Date.now },
+});
 
+const Borrower = mongoose.model('Borrower', borrowerSchema);
+app.use(cors());
+app.use(bodyParser.json());
+
+app.use('/api', emailRouter); // ✅ this mounts correctly
 // Port configuration
 const PORT = process.env.PORT || 5000;
 

@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle
+import { Card, CardContent, CardDescription, CardHeader, CardTitle
 } from '@/components/ui/card';
-import {
-  Tabs, TabsContent, TabsList, TabsTrigger
+import { Tabs, TabsContent, TabsList, TabsTrigger
 } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import DashboardHeader from '@/components/Dashboard/DashboardHeader';
 import EMICalculator from '@/components/EMICalculator/EMICalculator';
+import LendingRecords from '@/components/LendingRecords/LendingRecords';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loan, Payment } from '@/types/loan';
 import { formatCurrency } from '@/utils/loanCalculations';
@@ -266,10 +265,11 @@ const Dashboard: React.FC = () => {
         </div>
 
         <Tabs defaultValue="calculator" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
             <TabsTrigger value="calculator">EMI Calculator</TabsTrigger>
             <TabsTrigger value="loans">My Loans</TabsTrigger>
             <TabsTrigger value="payments">Payment History</TabsTrigger>
+            <TabsTrigger value="lending">Lending Records</TabsTrigger>
             <TabsTrigger value="schedule" className="hidden lg:flex">Schedule</TabsTrigger>
           </TabsList>
 
@@ -380,6 +380,10 @@ const Dashboard: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="lending">
+            <LendingRecords />
           </TabsContent>
 
           <TabsContent value="schedule">
