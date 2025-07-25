@@ -13,7 +13,11 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "*", // or specify "https://loan-manager-six.vercel.app"
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes - Fix the order and paths
@@ -45,7 +49,11 @@ const borrowerSchema = new mongoose.Schema({
 });
 
 const Borrower = mongoose.model('Borrower', borrowerSchema);
-app.use(cors());
+app.use(cors({
+  origin: "*", // or specify "https://loan-manager-six.vercel.app"
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 app.use('/api', emailRouter); // ✅ this mounts correctly
